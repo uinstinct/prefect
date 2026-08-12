@@ -140,7 +140,7 @@ def never_caching_task():
 To refresh the cache for all tasks, use the `PREFECT_TASKS_REFRESH_CACHE` setting. 
 Setting `PREFECT_TASKS_REFRESH_CACHE=true` changes the default behavior of all tasks to refresh. 
 
-If you have tasks that should not refresh when this setting is enabled, set `refresh_cache` to `False`. These tasks will never write to the cache. If a cache key exists it will be read, not updated. 
+If you have tasks that should not refresh when this setting is enabled, set `refresh_cache` to `False`. These tasks will not overwrite an existing cache entry. If a cache key exists it will be read, not updated. 
 If a cache key does _not_ exist yet, these tasks can still write to the cache.
 
 ```python
