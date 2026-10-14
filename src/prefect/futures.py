@@ -597,7 +597,12 @@ class PrefectFutureList(list[PrefectFuture[R]], Iterator[PrefectFuture[R]]):
                     results[i] = result
                 # Retrieval can overrun the deadline without cancellation
                 # arriving, e.g. on Windows where no sync cancel scope arms.
-                if deadline is not None and time.monotonic() >= deadline:
+                # A zero timeout means "don't wait", so it never bounds retrieval.
+                if (
+                    deadline is not None
+                    and timeout != 0
+                    and time.monotonic() >= deadline
+                ):
                     raise TimeoutError(timeout_message)
         # A `TimeoutError` from inside a task is not a `_WaitTimeoutError` and
         # propagates unchanged.
@@ -638,7 +643,9 @@ def as_completed(
     pending = unique_futures
     deadline: float | None = None
     try:
-        with timeout_context(timeout, timeout_exc_type=_WaitTimeoutError):
+        # A zero timeout means "don't wait"; a zero-second cancel scope would
+        # instead cancel the caller while it handles already-done futures.
+        with timeout_context(timeout or None, timeout_exc_type=_WaitTimeoutError):
             done = {f for f in unique_futures if f._final_state}  # type: ignore[privateUsage]
             pending = unique_futures - done
             yield from done
